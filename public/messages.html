@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Issue Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .support-container {
+      margin-left: 250px;
+      padding: 30px;
+      background-color: #f9f9f9;
+      min-height: 100vh;
+    }
+
+    .message-form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+
+    .message-form h3 { margin-bottom: 15px; }
+
+    .message-form input,
+    .message-form textarea {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 15px;
+      box-sizing: border-box;
+    }
+
+    .message-form button {
+      width: 100%;
+      background-color: #0056b3;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .message-form button:hover { background-color: #003f88; }
+
+    .filters {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .filters button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      background-color: #e0e0e0;
+      color: #333;
+      width: auto;
+    }
+
+    .filters button.active { background-color: #0056b3; color: white; }
+
+    .issue-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+      border-left: 5px solid #ccc;
+    }
+
+    .issue-card.Open { border-left-color: #dc3545; }
+    .issue-card.Resolved { border-left-color: #28a745; }
+
+    .issue-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .issue-meta {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .issue-meta strong { color: #333; }
+
+    .status-badge {
+      padding: 3px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .badge-Open { background-color: #f8d7da; color: #721c24; }
+    .badge-Resolved { background-color: #d4edda; color: #155724; }
+
+    .issue-content {
+      font-size: 15px;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .lab-tag {
+      display: inline-block;
+      background-color: #e8f0fe;
+      color: #1a56db;
+      padding: 2px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .reply-section {
+      border-top: 1px solid #eee;
+      padding-top: 12px;
+      margin-top: 10px;
+    }
+
+    .existing-reply {
+      background-color: #f0f7f0;
+      border-left: 3px solid #28a745;
+      padding: 8px 12px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .existing-reply .reply-meta {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    .reply-section textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      resize: vertical;
+      font-size: 14px;
+      margin-bottom: 8px;
+      box-sizing: border-box;
+    }
+
+    .reply-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-reply {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      width: auto;
+    }
+
+    .btn-reply:hover { background-color: #218838; }
+
+    .btn-resolve {
+      background-color: #0056b3;
+      color: white;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      width: auto;
+    }
+
+    .btn-resolve:hover { background-color: #003f88; }
+
+    .resolved-info {
+      font-size: 12px;
+      color: #28a745;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>UNIVERSITY</h2>
+    <ul>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="user.html">User</a></li>
+      <li><a href="labs.html">Labs</a></li>
+      <li><a href="items.html">Items</a></li>
+      <li><a href="borrower.html">Borrower</a></li>
+      <li><a href="inventory.html">Inventory</a></li>
+      <li><a href="#" class="active">Support</a></li>
+      <li><a href="index.html">Sign Out</a></li>
+    </ul>
+  </div>
+
+  <div class="support-container">
+    <h2>Issue Tracker</h2>
+
+    <div class="message-form">
+      <h3>Report an Issue</h3>
+      <input type="text" id="sender" placeholder="Your Name" readonly />
+      <input type="text" id="labRef" placeholder="Lab / Location (e.g. Lab 1, Floor 2)" />
+      <textarea id="content" placeholder="Describe the issue in detail..." rows="4" required></textarea>
+      <button onclick="submitIssue()">Submit Issue</button>
+    </div>
+
+    <div class="filters">
+      <button class="active" onclick="filterIssues('All', this)">All</button>
+      <button onclick="filterIssues('Open', this)">🔴 Open</button>
+      <button onclick="filterIssues('Resolved', this)">🟢 Resolved</button>
+    </div>
+
+    <div id="issueList"></div>
+  </div>
+
+  <script>
+    const loggedInUser = localStorage.getItem("loggedInUser") || "Unknown";
+    let currentFilter = 'All';
+    let allIssues = [];
+
+    document.getElementById("sender").value = loggedInUser;
+
+    const prefill = localStorage.getItem("prefillIssue");
+    if (prefill) {
+      document.getElementById("labRef").value = prefill;
+      document.getElementById("content").focus();
+      localStorage.removeItem("prefillIssue");
+    }
+
+    async function loadIssues() {
+      const res = await fetch('/api/messages');
+      allIssues = await res.json();
+      renderIssues();
+    }
+
+    function filterIssues(status, btn) {
+      currentFilter = status;
+      document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderIssues();
+    }
+
+    function renderIssues() {
+      const list = document.getElementById('issueList');
+      list.innerHTML = '';
+
+      const filtered = currentFilter === 'All'
+        ? allIssues
+        : allIssues.filter(m => m.status === currentFilter);
+
+      if (filtered.length === 0) {
+        list.innerHTML = '<p style="color:#999;">No issues found.</p>';
+        return;
+      }
+
+      filtered.forEach(msg => {
+        const status = msg.status || 'Open';
+        const statusClass = status.replace(' ', '-');
+        const isResolved = status === 'Resolved';
+        const date = new Date(msg.created_at).toLocaleString('en-KE', {
+          day: 'numeric', month: 'short', year: 'numeric',
+          hour: '2-digit', minute: '2-digit', hour12: true
+        });
+
+        const div = document.createElement('div');
+        div.className = `issue-card ${statusClass}`;
+        div.innerHTML = `
+          <div class="issue-header">
+            <div class="issue-meta">
+              <strong>${msg.sender}</strong> &nbsp;·&nbsp; ${date}
+            </div>
+            <span class="status-badge badge-${statusClass}">${status}</span>
+          </div>
+
+          ${msg.lab_reference ? `<span class="lab-tag">📍 ${msg.lab_reference}</span>` : ''}
+
+          <div class="issue-content">${msg.content}</div>
+
+          <div class="reply-section">
+            ${msg.reply ? `
+              <div class="existing-reply">
+                <div class="reply-meta">💬 Response:</div>
+                ${msg.reply}
+              </div>
+            ` : ''}
+
+            ${isResolved ? `
+              <div class="resolved-info">
+                ✅ Resolved by <strong>${msg.resolved_by || 'Unknown'}</strong>
+                ${msg.resolved_at ? `on ${msg.resolved_at}` : ''}
+              </div>
+            ` : `
+              <textarea id="reply-${msg.id}" placeholder="Write a response..." rows="2"></textarea>
+              <div class="reply-actions">
+                <button class="btn-reply" onclick="submitReply(${msg.id})">Reply</button>
+                <button class="btn-resolve" onclick="resolveIssue(${msg.id})">Mark as Resolved</button>
+              </div>
+            `}
+          </div>
+        `;
+
+        list.appendChild(div);
+      });
+    }
+
+    async function submitIssue() {
+      const sender = document.getElementById('sender').value;
+      const content = document.getElementById('content').value.trim();
+      const labRef = document.getElementById('labRef').value.trim();
+
+      if (!content) { alert("Please describe the issue."); return; }
+
+      await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sender, content, lab_reference: labRef })
+      });
+
+      document.getElementById('content').value = '';
+      document.getElementById('labRef').value = '';
+      loadIssues();
+    }
+
+    async function submitReply(id) {
+      const reply = document.getElementById(`reply-${id}`).value.trim();
+      if (!reply) return;
+
+      await fetch(`/api/messages/${id}/reply`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reply })
+      });
+
+      loadIssues();
+    }
+
+    async function resolveIssue(id) {
+      if (!confirm("Mark this issue as resolved?")) return;
+
+      const now = new Date().toLocaleString('en-KE', {
+        day: 'numeric', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: true
+      });
+
+      await fetch(`/api/messages/${id}/resolve`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resolved_by: loggedInUser, resolved_at: now })
+      });
+
+      loadIssues();
+    }
+
+    loadIssues();
+  </script>
+</body>
+</html>

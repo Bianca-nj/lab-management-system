@@ -1,0 +1,401 @@
+<!-- borrower.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>Borrowers</title>
+  <style>
+    input, button, select {
+      padding: 10px;
+      margin: 5px;
+    }
+    select {
+      width: auto;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: white;
+      min-width: 200px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+    }
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    .btn-return {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 2px;
+    }
+    .btn-return:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-edit {
+      background-color: #ffc107;
+      color: #333;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 2px;
+    }
+
+    /* Edit modal */
+    #editModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+    }
+    #editModal.open {
+      display: flex;
+    }
+    .modal-box {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      width: 350px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .modal-box h3 {
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+    .modal-box label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    .modal-box input {
+      width: 100%;
+      margin-bottom: 15px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .btn-save {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      flex: 1;
+    }
+    .btn-cancel {
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>UNIVERSITY</h2>
+    <ul>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="user.html">User</a></li>
+      <li><a href="labs.html">Labs</a></li>
+      <li><a href="items.html">Items</a></li>
+      <li><a href="#" class="active">Borrower</a></li>
+      <li><a href="inventory.html">Inventory</a></li>
+      <li><a href="messages.html">Support</a></li>
+      <li><a href="index.html">Sign Out</a></li>
+    </ul>
+  </div>
+
+  <div id="main-content">
+    <h2>Borrowers Section</h2>
+    <form id="borrowForm">
+      <div class="form-row">
+        <input type="text" id="name" placeholder="Borrower's Name" required />
+      </div>
+
+      <div class="form-row">
+        <select id="itemTypeSelect" required>
+          <option value="">-- Select Item Type --</option>
+        </select>
+        <select id="itemNameSelect" required disabled>
+          <option value="">-- Select Item Name --</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <button type="submit">Add Borrower</button>
+      </div>
+    </form>
+  
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Item</th>
+          <th>Item Name</th>
+          <th>Date &amp; Time Given</th>
+          <th>Return Date &amp; Time</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="borrowersList"></tbody>
+    </table>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="editModal">
+    <div class="modal-box">
+      <h3>Edit Borrower Times</h3>
+      <input type="hidden" id="editId" />
+
+      <label>Date &amp; Time Given</label>
+      <input type="datetime-local" id="editTimeGiven" />
+
+      <label>Return Date &amp; Time</label>
+      <input type="datetime-local" id="editReturnTime" />
+
+      <div class="modal-actions">
+        <button class="btn-save" onclick="saveEdit()">Save</button>
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allItems = [];
+    let borrowedItems = [];
+
+    async function loadData() {
+      const [itemsRes, borrowersRes] = await Promise.all([
+        fetch("/api/items"),
+        fetch("/borrowers")
+      ]);
+
+      allItems = await itemsRes.json();
+      const borrowers = await borrowersRes.json();
+
+      borrowedItems = borrowers
+        .filter(b => !b.returnTime)
+        .map(b => b.itemName);
+
+      loadItemTypes();
+    }
+
+    function loadItemTypes() {
+      const typeSelect = document.getElementById("itemTypeSelect");
+      typeSelect.innerHTML = '<option value="">-- Select Item Type --</option>';
+
+      const availableItems = allItems.filter(i => !borrowedItems.includes(i.item_name));
+      const uniqueTypes = [...new Set(availableItems.map(i => i.item))];
+
+      uniqueTypes.forEach(type => {
+        const option = document.createElement("option");
+        option.value = type;
+        option.textContent = type;
+        typeSelect.appendChild(option);
+      });
+
+      const nameSelect = document.getElementById("itemNameSelect");
+      nameSelect.innerHTML = '<option value="">-- Select Item Name --</option>';
+      nameSelect.disabled = true;
+    }
+
+    document.getElementById("itemTypeSelect").addEventListener("change", function () {
+      const selectedType = this.value;
+      const nameSelect = document.getElementById("itemNameSelect");
+      nameSelect.innerHTML = '<option value="">-- Select Item Name --</option>';
+
+      if (!selectedType) { nameSelect.disabled = true; return; }
+
+      const available = allItems.filter(i =>
+        i.item === selectedType && !borrowedItems.includes(i.item_name)
+      );
+
+      if (available.length === 0) {
+        nameSelect.innerHTML = '<option value="">No available items</option>';
+        nameSelect.disabled = true;
+        return;
+      }
+
+      available.forEach(i => {
+        const option = document.createElement("option");
+        option.value = i.item_name;
+        option.textContent = i.item_name;
+        nameSelect.appendChild(option);
+      });
+
+      nameSelect.disabled = false;
+    });
+
+    function getCurrentDateTime() {
+      const now = new Date();
+      return now.toLocaleString('en-KE', {
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: true
+      });
+    }
+
+    // Convert datetime-local value to readable string
+    function formatDateTime(dtLocal) {
+      if (!dtLocal) return null;
+      const d = new Date(dtLocal);
+      return d.toLocaleString('en-KE', {
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: true
+      });
+    }
+
+    // Convert readable string back to datetime-local format for the input
+    function toDatetimeLocal(str) {
+      if (!str) return '';
+      const d = new Date(str);
+      if (isNaN(d)) return '';
+      const pad = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    document.getElementById("borrowForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const item = document.getElementById("itemTypeSelect").value;
+      const itemName = document.getElementById("itemNameSelect").value;
+
+      if (!item || !itemName) {
+        alert("Please select both an item type and item name.");
+        return;
+      }
+
+      const data = {
+        name: document.getElementById("name").value,
+        item, itemName,
+        timeGiven: getCurrentDateTime(),
+      };
+
+      const response = await fetch("/add-borrower", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        loadBorrowers();
+        loadData();
+        e.target.reset();
+        document.getElementById("itemNameSelect").disabled = true;
+      }
+    });
+
+    async function loadBorrowers() {
+      const res = await fetch("/borrowers");
+      const borrowers = await res.json();
+      const tbody = document.getElementById("borrowersList");
+      tbody.innerHTML = "";
+
+      borrowers.forEach((b) => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${b.name}</td>
+            <td>${b.item}</td>
+            <td>${b.itemName}</td>
+            <td>${b.timeGiven}</td>
+            <td>${b.returnTime || '<em>Not returned yet</em>'}</td>
+            <td>
+              <button class="btn-return" onclick="markReturned(${b.id})" ${b.returnTime ? 'disabled' : ''}>
+                ${b.returnTime ? 'Returned' : 'Mark Returned'}
+              </button>
+              <button class="btn-edit" onclick="openEdit(${b.id}, '${b.timeGiven}', '${b.returnTime || ''}')">
+                Edit
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    // Mark returned - auto date+time
+    async function markReturned(id) {
+      if (!confirm("Mark this item as returned?")) return;
+
+      await fetch(`/update-return/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ returnTime: getCurrentDateTime() }),
+      });
+
+      loadBorrowers();
+      loadData();
+    }
+
+    // Open edit modal
+    function openEdit(id, timeGiven, returnTime) {
+      document.getElementById("editId").value = id;
+      document.getElementById("editTimeGiven").value = toDatetimeLocal(timeGiven);
+      document.getElementById("editReturnTime").value = toDatetimeLocal(returnTime);
+      document.getElementById("editModal").classList.add("open");
+    }
+
+    function closeModal() {
+      document.getElementById("editModal").classList.remove("open");
+    }
+
+    // Save edited times
+    async function saveEdit() {
+      const id = document.getElementById("editId").value;
+      const timeGiven = formatDateTime(document.getElementById("editTimeGiven").value);
+      const returnTime = formatDateTime(document.getElementById("editReturnTime").value);
+
+      // Update timeGiven
+      await fetch(`/update-timegiven/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ timeGiven }),
+      });
+
+      // Update returnTime if set
+      if (returnTime) {
+        await fetch(`/update-return/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ returnTime }),
+        });
+      }
+
+      closeModal();
+      loadBorrowers();
+      loadData();
+    }
+
+    loadBorrowers();
+    loadData();
+  </script>
+</body>
+</html>

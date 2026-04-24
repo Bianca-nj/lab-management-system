@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Items - KCA University</title>
+  <style>
+    /* Reset & Base Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f4f4f4;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /* Layout */
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+    .sidebar {
+      background-color: #005a9c;
+      color: #fff;
+      width: 250px;
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+    .sidebar h2 {
+      margin-bottom: 1em;
+      font-size: 1.5em;
+      text-align: center;
+    }
+    .sidebar ul {
+      list-style: none;
+    }
+    .sidebar ul li {
+      margin-bottom: 1em;
+    }
+    .sidebar ul li a {
+      display: block;
+      padding: 10px;
+      border-radius: 4px;
+      color: #fff;
+    }
+    .sidebar ul li a:hover,
+    .sidebar ul li a.active {
+      background-color: #004080;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 20px;
+      background-color: #fff;
+    }
+    .main-content header {
+      margin-bottom: 20px;
+    }
+    .main-content h1 {
+      font-size: 1.8em;
+      margin-bottom: 10px;
+    }
+    .main-content p {
+      margin-bottom: 1em;
+    }
+
+    /* Form Styles */
+    form {
+      margin-bottom: 20px;
+      background-color: #e9ecef;
+      padding: 15px;
+      border-radius: 4px;
+    }
+    .form-group {
+      margin-bottom: 10px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      display: inline-block;
+      padding: 8px 16px;
+      background-color: #005a9c;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #004080;
+    }
+
+    /* Table Styles */
+    .table-container {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    table th,
+    table td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    table th {
+      background-color: #f0f0f0;
+      font-weight: bold;
+    }
+    table tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+      /* Stack sidebar above content on smaller screens */
+      .container {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        padding: 10px;
+      }
+      .sidebar h2 {
+        font-size: 1.2em;
+      }
+      .sidebar ul li a {
+        padding: 8px;
+        font-size: 0.9em;
+      }
+      .main-content {
+        padding: 15px;
+      }
+      .main-content h1 {
+        font-size: 1.5em;
+      }
+    }
+    @media (max-width: 480px) {
+      /* Make form inputs and buttons full-width on very small screens */
+      input[type="text"],
+      input[type="number"],
+      select,
+      button {
+        width: 100%;
+      }
+      table th,
+      table td {
+        padding: 8px;
+        font-size: 0.9em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <h2>University</h2>
+      <ul>
+        <li><a href="dashboard.html">Dashboard</a></li>
+        <li><a href="user.html">User</a></li>
+        <li><a href="labs.html">Labs</a></li>
+        <li><a href="#" class="active">Items</a></li>
+        <li><a href="borrower.html">Borrower</a></li>
+        <li><a href="inventory.html">Inventory</a></li>
+        <li><a href="messages.html">Support</a></li>
+      
+      </ul>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <header>
+        <h1>Items</h1>
+        <p>Manage the list of inventory items below.</p>
+      </header>
+
+      <!-- Item Form -->
+      <form id="add-item-form">
+        <div class="form-group">
+          <label for="item">Item</label>
+          <input type="text" id="item" name="item" placeholder="Enter item" required>
+        </div>
+        <div class="form-group">
+          <label for="itemName">Item Name</label>
+          <input type="text" id="itemName" name="itemName" placeholder="Enter Item Name" required>
+        </div>
+        <button type="submit">Add Item</button>
+      </form>
+      
+      <table id="items-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Item</th>
+            <th>Item Name</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      
+      <script>
+        document.getElementById("add-item-form").addEventListener("submit", function (e) {
+          e.preventDefault();
+      
+          const item = document.getElementById("item").value;
+          const itemName = document.getElementById("itemName").value;
+      
+          fetch("http://localhost:3000/api/items", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ item, itemName })
+          })
+            .then(res => res.json())
+            .then(data => {
+              alert(data.message);
+              loadItems(); // refresh table
+              document.getElementById('add-item-form').reset();
+            })
+            .catch(err => console.error(err));
+        });
+        
+
+        
+        function loadItems() {
+          fetch("http://localhost:3000/api/items")
+            .then(res => res.json())
+            .then(data => {
+              const tbody = document.querySelector("#items-table tbody");
+              tbody.innerHTML = "";
+              data.forEach(item => {
+                tbody.innerHTML += `
+                  <tr>
+                    <td>${item.id}</td>
+                    <td>${item.item}</td>
+                    <td>${item.item_name}</td>
+                    <td><button onclick="deleteItem(${item.id})">Delete</button></td>
+                  </tr>`;
+              });
+            });
+        }
+      
+        function deleteItem(id) {
+          if (confirm("Delete this item?")) {
+            fetch(`http://localhost:3000/api/items/${id}`, {
+              method: "DELETE"
+            })
+              .then(res => res.json())
+              .then(data => {
+                alert(data.message);
+                loadItems();
+              });
+          }
+        }
+      
+        // Load items when page loads
+        loadItems();
+      </script>
+      
+</body>
+</html>

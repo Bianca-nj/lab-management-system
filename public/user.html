@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> University - User Management</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2> UNIVERSITY</h2>
+    <ul>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="#" class="active">User</a></li>
+      <li><a href="labs.html">Labs</a></li>
+      <li><a href="items.html">Items</a></li>
+      <li><a href="borrower.html">Borrower</a></li>
+      <li><a href="inventory.html">Inventory</a></li>
+      <li><a href="messages.html">Support</a></li>
+       <li><a href="index.html">Sign Out</a></li>
+    </ul>
+  </div>
+
+  <!-- Main Content -->
+  <main id="main-content">
+
+    <!-- Add User Section -->
+    <section class="add-user-section">
+      <h2 id="form-title">Add New User</h2>
+      <form id="add-user-form">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+
+        <div class="form-group">
+          <label for="phone-number">Phone Number</label>
+          <input type="tel" id="phone-number" name="phone" required minlength="10"
+           maxlength="10" pattern="\d{10}" title="Phone number must be exactly 10 digits">
+
+        </div>
+
+        <button type="submit">Add User</button>
+      </form>
+    </section>
+
+    <!-- Existing Users Section -->
+    <section class="user-list-section">
+      <h2>Existing Users</h2>
+      <div class="table-responsive">
+        <table id="user-list">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Phone Number</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    document.getElementById('phone-number').addEventListener('input', function () {
+    this.value = this.value.replace(/\D/g, '').slice(0, 10);
+});
+
+    document.getElementById('add-user-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const phone = document.getElementById('phone-number').value;
+      const formMode = document.querySelector('#add-user-form button').dataset.mode;
+
+      try {
+        let res;
+        if (formMode === 'edit') {
+          // If we are editing, make a PUT request to update the user
+          res = await fetch(`/users/${username}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone }), // Only updating phone number
+          });
+        } else {
+          // Otherwise, create a new user with POST request
+          res = await fetch('/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password, phone }),
+          });
+        }
+
+        const data = await res.json();
+        alert(data.message);
+
+        // Clear form
+        document.getElementById('add-user-form').reset();
+        
+        
+
+        // Optionally refresh the user list
+        fetchUsers();
+      } catch (err) {
+        console.error('Error:', err);
+        alert('Something went wrong!');
+      }
+    });
+
+    function fetchUsers() {
+      fetch('/users') // Ensure this route exists on your server
+        .then(res => res.json())
+        .then(data => {
+          const tbody = document.querySelector('#user-list tbody');
+          tbody.innerHTML = ''; // Clear existing
+
+          data.forEach(user => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${user.username}</td>
+              <td>${user.phone_number}</td>
+              <td>
+                <button onclick="editUser('${user.username}', '${user.phone_number}')">Edit</button>
+                <button onclick="deleteUser('${user.username}')">Delete</button>
+              </td>
+            `;
+            tbody.appendChild(row);
+          });
+        });
+    }
+
+    function deleteUser(username) {
+      if (!confirm(`Are you sure you want to delete ${username}?`)) return;
+
+      fetch(`/users/${username}`, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(data => {
+          alert(data.message);
+          fetchUsers(); // Refresh the list
+        })
+        .catch(err => {
+          console.error('Error deleting user:', err);
+          alert('Something went wrong while deleting user');
+        });
+    }
+
+    function editUser(username, phone_number) {
+      const newUsername = prompt('Edit Username', username);
+      if (newUsername === null) return;
+
+      const newPhone = prompt('Edit Phone Number', phone_number);
+      if (newPhone === null) return;
+
+      const newPassword = prompt('New Password (leave blank to keep current)', '');
+
+      const confirmUpdate = confirm('Are you sure you want to update this user?');
+      if (!confirmUpdate) return;
+
+      const body = {
+        username: newUsername,
+        phone: newPhone
+      };
+      if (newPassword) body.password = newPassword;
+
+      fetch(`/users/${username}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+        .then(res => res.json())
+        .then(data => {
+          alert(data.message);
+          fetchUsers();
+        });
+    }
+
+    fetchUsers(); // Fetch existing users when page loads
+  </script>
+</body>
+</html>

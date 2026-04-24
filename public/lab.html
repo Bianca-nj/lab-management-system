@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Labs</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    #labName {
+    padding: 8px;
+    font-size: 14px;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 10px;
+  }
+
+  button {
+    padding: 8px 12px;
+    font-size: 14px;
+    width: 100%;
+    margin-bottom: 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background-color: #0056b3;
+  }
+
+  #labsList {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    list-style: none;
+    padding: 0;
+  }
+
+  #labsList li {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 15px;
+    text-align: center;
+  }
+
+  #labsList .delete {
+    margin-top: 10px;
+    background-color: #dc3545;
+    padding: 6px 10px;
+    font-size: 12px;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  #labsList .delete:hover {
+    background-color: #c82333;
+  }
+  </style>
+</head>
+<body>
+   <!-- Sidebar -->
+  <div class="sidebar">
+    <h2> UNIVERSITY</h2>
+    <ul>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="user.html" >User</a></li>
+      <li><a href="#" class="active">Labs</a></li>
+      <li><a href="items.html">Items</a></li>
+      <li><a href="borrower.html">Borrower</a></li>
+      <li><a href="inventory.html">Inventory</a></li>
+      <li><a href="messages.html">Support</a></li>
+       <li><a href="index.html">Sign Out</a></li>
+    </ul>
+  </div>
+
+  <!-- Main Content -->
+  <main id="main-content">
+    <button onclick="goBack()" style="margin-bottom: 15px;">← Back to Floors</button>
+
+  <h2 id="floorTitle"></h2>
+
+  <input type="text" id="labName" placeholder="Enter Lab Name" />
+  <button onclick="addLab()">Add Lab</button>
+
+  <ul id="labsList"></ul>
+
+  <script>
+function goToLab(labId, labName) {
+  window.location.href = `lab-computers.html?lab_id=${labId}&lab_name=${encodeURIComponent(labName)}`;
+}
+  
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const floorId = urlParams.get('floorId');
+    const floorName = urlParams.get('floorName');
+
+    document.getElementById('floorTitle').textContent = `Labs in ${floorName}`;
+
+    function loadLabs() {
+      fetch(`/api/labs/${floorId}`)
+        .then(res => res.json())
+        .then(data => {
+          const list = document.getElementById('labsList');
+          list.innerHTML = '';
+          data.forEach(lab => {
+            const li = document.createElement('li');
+           li.innerHTML = `<span style="cursor:pointer; color: #007bff;" 
+           onclick="goToLab('${lab.id}', '${lab.name}')">${lab.name}</span>`;
+
+            const delBtn = document.createElement('button');
+            delBtn.textContent = 'Delete';
+            delBtn.className = 'delete';
+            delBtn.onclick = () => deleteLab(lab.id);
+
+            li.appendChild(delBtn);
+            list.appendChild(li);
+          });
+        });
+    }
+
+    function addLab() {
+      const name = document.getElementById('labName').value.trim();
+      if (!name) return alert("Please enter a lab name");
+
+      fetch('/api/labs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, floor_id: floorId })
+      })
+      .then(res => res.json())
+      .then(() => {
+        document.getElementById('labName').value = '';
+        loadLabs();
+      });
+    }
+
+    function deleteLab(id) {
+      fetch(`/api/labs/${id}`, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(loadLabs);
+    }
+
+    loadLabs();
+    function goBack() {
+    window.location.href = 'labs.html'; 
+  }
+  </script>
+</body>
+</html>

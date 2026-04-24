@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lab Computers</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .side-container {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+      gap: 20px;
+    }
+
+    #leftSide, #rightSide {
+      width: 48%;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 8px;
+      background-color: #f8f8f8;
+    }
+
+    .computer-box {
+      background-color: white;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      border-left: 5px solid #ccc;
+    }
+
+    .computer-box.Working { border-left-color: #28a745; }
+    .computer-box.Has-Issue { border-left-color: #ffc107; }
+    .computer-box.Out-of-Service { border-left-color: #dc3545; }
+
+    .computer-box label {
+      font-size: 12px;
+      font-weight: bold;
+      color: #555;
+      display: block;
+      margin-top: 6px;
+      margin-bottom: 2px;
+    }
+
+    .computer-box input,
+    .computer-box select {
+      width: 100%;
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 13px;
+      margin-bottom: 4px;
+      box-sizing: border-box;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .badge-Working { background-color: #d4edda; color: #155724; }
+    .badge-Has-Issue { background-color: #fff3cd; color: #856404; }
+    .badge-Out-of-Service { background-color: #f8d7da; color: #721c24; }
+
+    .computer-box .btn-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .computer-box button {
+      flex: 1;
+      padding: 6px;
+      font-size: 13px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: auto;
+    }
+
+    .btn-update { background-color: #007bff; color: white; }
+    .btn-update:hover { background-color: #0056b3; }
+    .btn-delete { background-color: #dc3545; color: white; }
+    .btn-delete:hover { background-color: #a71d2a; }
+    .btn-report { background-color: #ffc107; color: #333; }
+    .btn-report:hover { background-color: #d39e00; }
+
+    .add-form {
+      background: #f0f4f8;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .add-form h3 { margin-bottom: 10px; }
+
+    .add-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .add-form-grid label {
+      font-size: 13px;
+      font-weight: bold;
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .add-form-grid input,
+    .add-form-grid select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    .add-form button {
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .add-form button:hover { background-color: #0056b3; }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>UNIVERSITY</h2>
+    <ul>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="user.html">User</a></li>
+      <li><a href="labs.html" class="active">Labs</a></li>
+      <li><a href="items.html">Items</a></li>
+      <li><a href="borrower.html">Borrower</a></li>
+      <li><a href="inventory.html">Inventory</a></li>
+      <li><a href="messages.html">Support</a></li>
+      <li><a href="index.html">Sign Out</a></li>
+    </ul>
+  </div>
+
+  <main id="main-content">
+    <button onclick="goBack()" style="margin-bottom:15px;">← Back to Labs</button>
+    <h3 id="labNameHeading">Lab: </h3>
+
+    <!-- Add Computer Form -->
+    <div class="add-form">
+      <h3>Add Computer</h3>
+      <div class="add-form-grid">
+        <div>
+          <label>Computer Details</label>
+          <input type="text" id="specs" placeholder="e.g. Intel i5, 8GB RAM, 256GB SSD" />
+        </div>
+        <div>
+          <label>Operating System</label>
+          <select id="os">
+            <option value="Windows 10">Windows 10</option>
+            <option value="Windows 11">Windows 11</option>
+            <option value="Ubuntu">Ubuntu</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div>
+          <label>Side</label>
+          <select id="side">
+            <option value="left">Left</option>
+            <option value="right">Right</option>
+          </select>
+        </div>
+        <div>
+          <label>Position Number</label>
+          <input type="number" id="position" placeholder="e.g. 1" />
+        </div>
+        <div>
+          <label>Status</label>
+          <select id="status">
+            <option value="Working">Working</option>
+            <option value="Has Issue">Has Issue</option>
+            <option value="Out of Service">Out of Service</option>
+          </select>
+        </div>
+      </div>
+      <button onclick="addComputer()">Add Computer</button>
+    </div>
+
+    <div class="side-container">
+      <div id="leftSide">
+        <h3>Left Side</h3>
+        <div id="leftComputers"></div>
+      </div>
+      <div id="rightSide">
+        <h3>Right Side</h3>
+        <div id="rightComputers"></div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function goBack() { window.history.back(); }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const labId = urlParams.get('lab_id');
+    const labName = urlParams.get('lab_name');
+
+    document.getElementById('labNameHeading').textContent = "Lab: " + (labName || 'Unknown');
+
+    function loadComputers() {
+      fetch(`/api/computers/${labId}`)
+        .then(res => res.json())
+        .then(data => {
+          const leftDiv = document.getElementById('leftComputers');
+          const rightDiv = document.getElementById('rightComputers');
+          leftDiv.innerHTML = '';
+          rightDiv.innerHTML = '';
+
+          data.forEach(comp => {
+            const statusClass = (comp.status || 'Working').replace(' ', '-');
+            const div = document.createElement('div');
+            div.classList.add('computer-box', statusClass);
+            div.innerHTML = `
+              <span class="status-badge badge-${statusClass}">${comp.status || 'Working'}</span>
+              <strong>Position ${comp.position}</strong>
+
+              <label>Computer Details</label>
+              <input type="text" id="specs-${comp.id}" value="${comp.specs || ''}" placeholder="Computer Details" />
+
+              <label>Operating System</label>
+              <select id="os-${comp.id}">
+                <option value="Windows 10" ${comp.os === 'Windows 10' ? 'selected' : ''}>Windows 10</option>
+                <option value="Windows 11" ${comp.os === 'Windows 11' ? 'selected' : ''}>Windows 11</option>
+                <option value="Ubuntu" ${comp.os === 'Ubuntu' ? 'selected' : ''}>Ubuntu</option>
+                <option value="Other" ${comp.os === 'Other' ? 'selected' : ''}>Other</option>
+              </select>
+
+              <label>Status</label>
+              <select id="status-${comp.id}">
+                <option value="Working" ${comp.status === 'Working' ? 'selected' : ''}>Working</option>
+                <option value="Has Issue" ${comp.status === 'Has Issue' ? 'selected' : ''}>Has Issue</option>
+                <option value="Out of Service" ${comp.status === 'Out of Service' ? 'selected' : ''}>Out of Service</option>
+              </select>
+
+              <label>Side</label>
+              <select id="side-${comp.id}">
+                <option value="left" ${comp.side === 'left' ? 'selected' : ''}>Left</option>
+                <option value="right" ${comp.side === 'right' ? 'selected' : ''}>Right</option>
+              </select>
+
+              <label>Position</label>
+              <input type="number" id="position-${comp.id}" value="${comp.position}" />
+
+              <div class="btn-row">
+                <button class="btn-update" onclick="updateComputer(${comp.id})">Update</button>
+                <button class="btn-report" onclick="reportIssue('${labName}', ${comp.position})">Report Issue</button>
+                <button class="btn-delete" onclick="deleteComputer(${comp.id})">Delete</button>
+              </div>
+            `;
+
+            if (comp.side === 'left') leftDiv.appendChild(div);
+            else rightDiv.appendChild(div);
+          });
+        });
+    }
+
+    function addComputer() {
+      const specs = document.getElementById('specs').value;
+      const side = document.getElementById('side').value;
+      const position = document.getElementById('position').value;
+      const os = document.getElementById('os').value;
+      const status = document.getElementById('status').value;
+
+      if (!specs || !side || !position) {
+        alert("Please fill in computer details, side, and position.");
+        return;
+      }
+
+      fetch('/api/computers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ specs, side, position, lab_id: labId, os, status, comment: '' })
+      })
+      .then(res => res.json())
+      .then(() => {
+        document.getElementById('specs').value = '';
+        document.getElementById('position').value = '';
+        loadComputers();
+      });
+    }
+
+    function updateComputer(id) {
+      const specs = document.getElementById(`specs-${id}`).value;
+      const side = document.getElementById(`side-${id}`).value;
+      const position = document.getElementById(`position-${id}`).value;
+      const os = document.getElementById(`os-${id}`).value;
+      const status = document.getElementById(`status-${id}`).value;
+
+      if (!specs || !side || !position) {
+        alert("Please fill in computer details, side, and position.");
+        return;
+      }
+
+      fetch(`/api/computers/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ specs, comment: '', side, position, os, status })
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to update');
+        return res.json();
+      })
+      .then(() => loadComputers())
+      .catch(() => alert("Problem updating computer."));
+    }
+
+    function deleteComputer(id) {
+      if (confirm("Are you sure you want to delete this computer?")) {
+        fetch(`/api/computers/${id}`, { method: 'DELETE' })
+          .then(() => loadComputers());
+      }
+    }
+
+    function reportIssue(labName, position) {
+      const issue = `[${labName} - Position ${position}] `;
+      localStorage.setItem("prefillIssue", issue);
+      window.location.href = "messages.html";
+    }
+
+    loadComputers();
+  </script>
+</body>
+</html>

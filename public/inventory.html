@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Lab Inventory</title>
+    <style>
+        .tabs button {
+  padding: 10px;
+  margin: 5px;
+  cursor: pointer;
+  background: #444;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+.tab-content {
+  background: white;
+  padding: 20px;
+  margin-top: 10px;
+  border-radius: 8px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px;
+}
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <!-- Sidebar Title -->
+        <h2>UNIVERSITY</h2>
+        <ul>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="user.html">User</a></li>
+            <li><a href="labs.html">Labs</a></li>
+            <li><a href="items.html">Items</a></li>
+            <li><a href="borrower.html">Borrower</a></li>
+            <li><a href="#" class="active">Inventory</a></li>
+            <li><a href="messages.html">Support</a></li>
+             <li><a href="index.html">Sign Out</a></li>
+        </ul>
+    </div>
+
+    <div id="main-content"> 
+<h1>Lab Management Inventory Dashboard</h1>
+
+  <div class="tabs">
+    <button onclick="openTab('users')">Users</button>
+    <button onclick="openTab('labs')">Labs</button>
+    <button onclick="openTab('items')">Items</button>
+    <button onclick="openTab('messages')">Messages</button>
+     <button onclick="openTab('borrowers')">Borrowers</button>
+  
+  </div>
+
+  <div id="users" class="tab-content"></div>
+  <div id="labs" class="tab-content" style="display:none;"></div>
+  <div id="items" class="tab-content" style="display:none;"></div>
+  <div id="messages" class="tab-content" style="display:none;"></div>
+  <div id="borrowers" class="tab-content" style="display:none;"></div>
+  
+
+    </div>
+    <script>
+        function openTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(div => div.style.display = 'none');
+  document.getElementById(tabId).style.display = 'block';
+
+  if (tabId === 'users') loadUsers();
+  if (tabId === 'labs') loadLabs();
+  if (tabId === 'items') loadItems();
+  if (tabId === 'messages') loadMessages();
+  if (tabId === 'borrowers') loadBorrowers(); 
+
+  
+}
+
+async function loadUsers() {
+  const res = await fetch('http://localhost:3000/api/users');
+  const data = await res.json();
+  const html = `
+    <h2>Users</h2>
+    <table><tr><th>Name</th><th>phone_number</th></tr>
+    ${data.map(user => `<tr><td>${user.username}</td><td>${user.phone_number}</td>`).join('')}
+    </table>`;
+  document.getElementById('users').innerHTML = html;
+}
+
+async function loadLabs() {
+  const floorsRes = await fetch('http://localhost:3000/floors');
+  const floors = await floorsRes.json();
+
+  let html = `<h2>Labs by Floor</h2>`;
+
+  for (const floor of floors) {
+    const labsRes = await fetch(`http://localhost:3000/api/labs/${floor.id}`);
+    const labs = await labsRes.json();
+
+    html += `<h3>${floor.name}</h3>`;
+    if (labs.length === 0) {
+      html += `<p>No labs available on this floor.</p>`;
+      continue;
+    }
+
+    html += `<table border="1" cellpadding="5" cellspacing="0">
+               <tr><th>Lab Name</th><th># Computers</th></tr>`;
+
+    for (const lab of labs) {
+      // Fetch computers for each lab to count them
+      const compRes = await fetch(`http://localhost:3000/api/computers/${lab.id}`);
+      const computers = await compRes.json();
+
+      html += `<tr>
+                 <td>${lab.name}</td>
+                 <td>${computers.length}</td>
+               </tr>`;
+    }
+
+    html += `</table>`;
+  }
+
+  document.getElementById('labs').innerHTML = html;
+}
+
+
+async function loadItems() {
+  const res = await fetch('http://localhost:3000/api/items');
+  const data = await res.json();
+  const html = `
+    <h2>Items</h2>
+    <table><tr><th>Item</th><th>Item Name</th></tr>
+    ${data.map(item => `<tr><td>${item.item}</td><td>${item.item_name}</td></tr>`).join('')}
+    </table>`;
+  document.getElementById('items').innerHTML = html;
+}
+
+async function loadMessages() {
+  const res = await fetch('http://localhost:3000/api/messages');
+  const data = await res.json();
+  const html = `
+    <h2>Messages</h2>
+    <ul>
+      ${data.map(msg => `<li><strong>${msg.sender}</strong>: ${msg.content}</li>`).join('')}
+    </ul>`;
+  document.getElementById('messages').innerHTML = html;
+}
+
+async function loadBorrowers() {
+  try {
+    const res = await fetch('http://localhost:3000/borrowers');
+    const borrowers = await res.json();
+
+    let html = `
+      <h2>Borrowers</h2>
+      <table>
+        <tr>
+          <th>Name</th>
+          <th>Item</th>
+          <th>Item Name</th>
+          <th>Time Given</th>
+          <th>Return Time</th>
+        </tr>
+        ${borrowers.map(borrower => `
+          <tr>
+            <td>${borrower.name}</td>
+            <td>${borrower.item}</td>
+            <td>${borrower.itemName}</td>
+            <td>${borrower.timeGiven}</td>
+            <td>${borrower.returnTime || 'Not returned'}</td>
+          </tr>
+        `).join('')}
+      </table>
+    `;
+
+    document.getElementById('borrowers').innerHTML = html;
+  } catch (error) {
+    console.error('Error loading borrowers:', error);
+  }
+}
+
+
+// Load the first tab by default
+openTab('users');
+
+    </script>
+</body>
+</html>

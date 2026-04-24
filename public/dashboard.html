@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Management System - Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+        }
+
+        #main-content {
+            margin-left: 250px;
+            padding: 30px;
+            width: calc(100% - 250px);
+            min-height: 100vh;
+        }
+
+        /* Top bar */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        .topbar-left h1 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a1a2e;
+            background: none;
+            box-shadow: none;
+            text-shadow: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .topbar-left p {
+            font-size: 13px;
+            color: #888;
+            margin-top: 3px;
+        }
+
+        .admin-icon-container {
+            position: relative;
+        }
+
+        .admin-icon {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            background: white;
+            padding: 8px 14px;
+            border-radius: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: box-shadow 0.2s;
+        }
+
+        .admin-icon:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
+
+        .admin-icon i { font-size: 22px; color: #005a9c; }
+
+        .admin-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 48px;
+            background: white;
+            min-width: 160px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 100;
+        }
+
+        .dropdown-content span {
+            display: block;
+            padding: 12px 16px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #333;
+            border-bottom: 1px solid #f0f0f0;
+            background: #fafafa;
+        }
+
+        .dropdown-content a {
+            display: block;
+            padding: 11px 16px;
+            font-size: 13px;
+            color: #dc3545;
+            text-decoration: none;
+        }
+
+        .dropdown-content a:hover { background: #fff5f5; }
+
+        /* Stat cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.blue { background: #e8f0fe; color: #1a56db; }
+        .stat-icon.red { background: #fde8e8; color: #dc3545; }
+        .stat-icon.green { background: #e6f4ea; color: #28a745; }
+        .stat-icon.orange { background: #fff3e0; color: #fd7e14; }
+
+        .stat-info h3 {
+            font-size: 26px;
+            font-weight: 600;
+            color: #1a1a2e;
+            line-height: 1;
+        }
+
+        .stat-info p {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        /* Two column layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .card-header h2 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a2e;
+            text-align: left;
+            margin: 0;
+        }
+
+        .card-header a {
+            font-size: 12px;
+            color: #005a9c;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .card-header a:hover { text-decoration: underline; }
+
+        /* Issue items */
+        .issue-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #f8f8f8;
+        }
+
+        .issue-item:last-child { border-bottom: none; }
+
+        .issue-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #dc3545;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+
+        .issue-text {
+            flex: 1;
+        }
+
+        .issue-text p {
+            font-size: 13px;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .issue-text span {
+            font-size: 11px;
+            color: #aaa;
+            font-family: 'DM Mono', monospace;
+        }
+
+        .issue-lab {
+            font-size: 11px;
+            background: #e8f0fe;
+            color: #1a56db;
+            padding: 2px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+
+        /* Computer items */
+        .computer-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f8f8f8;
+        }
+
+        .computer-item:last-child { border-bottom: none; }
+
+        .computer-info p {
+            font-size: 13px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .computer-info span {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .status-pill {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+
+        .pill-issue { background: #fff3cd; color: #856404; }
+        .pill-outofservice { background: #f8d7da; color: #721c24; }
+
+        /* Borrower items */
+        .borrower-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f8f8f8;
+        }
+
+        .borrower-item:last-child { border-bottom: none; }
+
+        .borrower-info p {
+            font-size: 13px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .borrower-info span {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px 0;
+            color: #bbb;
+            font-size: 13px;
+        }
+
+        .empty-state i {
+            font-size: 28px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        /* Loading shimmer */
+        .shimmer {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.2s infinite;
+            border-radius: 6px;
+            height: 14px;
+            margin-bottom: 8px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        @media (max-width: 1100px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>UNIVERSITY</h2>
+        <ul>
+            <li><a href="#" class="active">Dashboard</a></li>
+            <li><a href="user.html">User</a></li>
+            <li><a href="labs.html">Labs</a></li>
+            <li><a href="items.html">Items</a></li>
+            <li><a href="borrower.html">Borrower</a></li>
+            <li><a href="inventory.html">Inventory</a></li>
+            <li><a href="messages.html">Support</a></li>
+            <li><a href="index.html">Sign Out</a></li>
+        </ul>
+    </div>
+
+    <div id="main-content">
+        <!-- Top bar -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <h1>Dashboard</h1>
+                <p id="dateDisplay"></p>
+            </div>
+            <div class="admin-icon-container">
+                <div class="admin-icon" onclick="toggleDropdown()">
+                    <i class="fas fa-user-circle"></i>
+                    <span class="admin-name" id="adminName">User</span>
+                    <i class="fas fa-chevron-down" style="font-size:11px; color:#aaa;"></i>
+                </div>
+                <div id="admin-dropdown" class="dropdown-content">
+                    <span id="username">User Name</span>
+                    <a href="index.html" onclick="logout()"><i class="fas fa-sign-out-alt" style="margin-right:6px;"></i>Sign Out</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue"><i class="fas fa-desktop"></i></div>
+                <div class="stat-info">
+                    <h3 id="totalComputers">—</h3>
+                    <p>Total Computers</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red"><i class="fas fa-exclamation-circle"></i></div>
+                <div class="stat-info">
+                    <h3 id="openIssuesCount">—</h3>
+                    <p>Open Issues</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange"><i class="fas fa-hand-holding"></i></div>
+                <div class="stat-info">
+                    <h3 id="activeBorrowers">—</h3>
+                    <p>Items Out</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fas fa-flask"></i></div>
+                <div class="stat-info">
+                    <h3 id="totalLabs">—</h3>
+                    <p>Total Labs</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main grid -->
+        <div class="dashboard-grid">
+
+            <!-- Open Issues -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2>🔴 Open Issues</h2>
+                    <a href="messages.html">View all →</a>
+                </div>
+                <div id="openIssuesList">
+                    <div class="shimmer"></div>
+                    <div class="shimmer" style="width:70%"></div>
+                    <div class="shimmer" style="width:85%"></div>
+                </div>
+            </div>
+
+            <!-- Computers with issues -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2>⚠️ Computers Needing Attention</h2>
+                    <a href="labs.html">View labs →</a>
+                </div>
+                <div id="problemComputersList">
+                    <div class="shimmer"></div>
+                    <div class="shimmer" style="width:75%"></div>
+                    <div class="shimmer" style="width:60%"></div>
+                </div>
+            </div>
+
+            <!-- Active borrowers -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2>📦 Items Currently Out</h2>
+                    <a href="borrower.html">View all →</a>
+                </div>
+                <div id="activeBorrowersList">
+                    <div class="shimmer"></div>
+                    <div class="shimmer" style="width:80%"></div>
+                </div>
+            </div>
+
+            <!-- Recently resolved -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h2>✅ Recently Resolved</h2>
+                    <a href="messages.html">View all →</a>
+                </div>
+                <div id="resolvedIssuesList">
+                    <div class="shimmer"></div>
+                    <div class="shimmer" style="width:65%"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Date display
+        document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('en-KE', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+
+        // Username
+        const loggedInUser = localStorage.getItem("loggedInUser") || "Guest";
+        document.getElementById("username").textContent = loggedInUser;
+        document.getElementById("adminName").textContent = loggedInUser;
+
+        function toggleDropdown() {
+            const dropdown = document.getElementById("admin-dropdown");
+            dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+        }
+
+        window.addEventListener('click', function(e) {
+            const dropdown = document.getElementById("admin-dropdown");
+            if (!e.target.closest('.admin-icon-container')) {
+                dropdown.style.display = "none";
+            }
+        });
+
+        function logout() {
+            localStorage.removeItem("loggedInUser");
+        }
+
+        // Load all dashboard data
+        async function loadDashboard() {
+            try {
+                const [messagesRes, borrowersRes, labsRes, computersRes] = await Promise.all([
+                    fetch('/api/messages'),
+                    fetch('/borrowers'),
+                    fetch('/api/labs'),
+                    fetch('/api/computers/all').catch(() => ({ json: () => [] }))
+                ]);
+
+                const messages = await messagesRes.json();
+                const borrowers = await borrowersRes.json();
+                const labs = await labsRes.json();
+
+                // Stats
+                const openIssues = messages.filter(m => m.status === 'Open');
+                const resolvedIssues = messages.filter(m => m.status === 'Resolved');
+                const activeItems = borrowers.filter(b => !b.returnTime);
+
+                document.getElementById('openIssuesCount').textContent = openIssues.length;
+                document.getElementById('activeBorrowers').textContent = activeItems.length;
+                document.getElementById('totalLabs').textContent = labs.length;
+
+                // Total computers across all labs
+                const totalComps = labs.reduce((sum, l) => sum + (l.computer_count || 0), 0);
+                document.getElementById('totalComputers').textContent = totalComps;
+
+                // Open issues list
+                const issuesList = document.getElementById('openIssuesList');
+                if (openIssues.length === 0) {
+                    issuesList.innerHTML = `<div class="empty-state"><i class="fas fa-check-circle"></i>No open issues</div>`;
+                } else {
+                    issuesList.innerHTML = openIssues.slice(0, 5).map(m => {
+                        const date = new Date(m.created_at).toLocaleDateString('en-KE', {
+                            day: 'numeric', month: 'short'
+                        });
+                        return `
+                            <div class="issue-item">
+                                <div class="issue-dot"></div>
+                                <div class="issue-text">
+                                    <p>${m.content.length > 60 ? m.content.slice(0, 60) + '...' : m.content}</p>
+                                    <span>By ${m.sender} · ${date}</span>
+                                </div>
+                                ${m.lab_reference ? `<span class="issue-lab">${m.lab_reference}</span>` : ''}
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // Recently resolved
+                const resolvedList = document.getElementById('resolvedIssuesList');
+                if (resolvedIssues.length === 0) {
+                    resolvedList.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i>No resolved issues yet</div>`;
+                } else {
+                    resolvedList.innerHTML = resolvedIssues.slice(0, 5).map(m => `
+                        <div class="issue-item">
+                            <div class="issue-dot" style="background:#28a745;"></div>
+                            <div class="issue-text">
+                                <p>${m.content.length > 60 ? m.content.slice(0, 60) + '...' : m.content}</p>
+                                <span>Resolved by ${m.resolved_by || 'Unknown'} · ${m.resolved_at || ''}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                // Active borrowers
+                const borrowersList = document.getElementById('activeBorrowersList');
+                if (activeItems.length === 0) {
+                    borrowersList.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i>No items currently out</div>`;
+                } else {
+                    borrowersList.innerHTML = activeItems.slice(0, 5).map(b => `
+                        <div class="borrower-item">
+                            <div class="borrower-info">
+                                <p>${b.name}</p>
+                                <span>${b.item} — ${b.itemName}</span>
+                            </div>
+                            <span style="font-size:11px; color:#aaa; font-family:'DM Mono',monospace;">${b.timeGiven}</span>
+                        </div>
+                    `).join('');
+                }
+
+                // Problem computers - fetch per lab
+                const problemComputersList = document.getElementById('problemComputersList');
+                let problemComputers = [];
+
+                await Promise.all(labs.map(async lab => {
+                    try {
+                        const res = await fetch(`/api/computers/${lab.id}`);
+                        const computers = await res.json();
+                        computers.forEach(c => {
+                            if (c.status === 'Has Issue' || c.status === 'Out of Service') {
+                                problemComputers.push({ ...c, labName: lab.name });
+                            }
+                        });
+                    } catch (e) {}
+                }));
+
+                if (problemComputers.length === 0) {
+                    problemComputersList.innerHTML = `<div class="empty-state"><i class="fas fa-check"></i>All computers are working</div>`;
+                } else {
+                    problemComputersList.innerHTML = problemComputers.slice(0, 5).map(c => {
+                        const pillClass = c.status === 'Has Issue' ? 'pill-issue' : 'pill-outofservice';
+                        return `
+                            <div class="computer-item">
+                                <div class="computer-info">
+                                    <p>${c.labName} — Position ${c.position}</p>
+                                    <span>${c.specs || 'No details'} · ${c.side} side</span>
+                                </div>
+                                <span class="status-pill ${pillClass}">${c.status}</span>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+            } catch (err) {
+                console.error('Dashboard load error:', err);
+            }
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>
